@@ -1,0 +1,6 @@
+bin
+vendor
+.idea
+*main*
+!main.go
+*mhbuilder*
