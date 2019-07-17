@@ -1,13 +1,14 @@
 package version
 
 import (
-        "runtime"
-        "fmt"
-        "time"
+	"fmt"
+	"github.com/hashicorp/consul/version"
+	"runtime"
+	"time"
 )
 
 // The git commit that was compiled. This will be filled in by the compiler.
-var GitCommit string
+var GitCommit = version.GitCommit
 
 // The main version number that is being run at the moment.
 const Version = "0.1.0"

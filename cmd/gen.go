@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// versionCmd represents the version command
+// genCmd represents the create code command
 var (
 	genCmd = &cobra.Command{
 		Use:   "gen",
@@ -13,6 +13,7 @@ var (
 		Long:  `生成中间代码，包含所有代码`,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("开始生成中间代码指令", files, searchDir, relathionPutAndPatch, outputDir, parseVendor, parseDependency, propertyStrategyFlag)
+			fmt.Println("参数有", args)
 
 		},
 	}
