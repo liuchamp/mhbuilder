@@ -17,7 +17,7 @@ import (
 
 type Parser struct {
 	files map[string]*ast.File
-
+	Build *Builder
 	// registerTypes is a map that stores [refTypeName][*ast.TypeSpec]
 	registerTypes map[string]*ast.TypeSpec
 
@@ -36,6 +36,7 @@ type Parser struct {
 func NewParser() *Parser {
 	return &Parser{
 		files: make(map[string]*ast.File),
+		Build: NewBuilder(),
 	}
 }
 
@@ -68,8 +69,10 @@ func (parser *Parser) ParModel(searchDir string) error {
 	// 开始解析文件
 	err = parser.ExtentsFile()
 	if err != nil {
-		log.Error("parse file meeting error", err)
+		return err
 	}
+
+	// 将数据写入目标package
 
 	return nil
 }
@@ -80,9 +83,11 @@ func (parser *Parser) ExtentsFile() error {
 		return fmt.Errorf("not find file")
 	}
 	for k, v := range parser.files {
-		log.Debugln("parse all struct", k, v)
-		//goparser.ParseFile()
-
+		err := parser.Build.ExtentsFileInfo(k, parser.PkgName, v)
+		if err != nil {
+			log.Errorf("Can not Extend file: %s in package: %s", k, parser.PkgName)
+			return err
+		}
 	}
 	return nil
 }

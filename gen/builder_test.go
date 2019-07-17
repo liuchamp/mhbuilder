@@ -17,7 +17,7 @@ func TestBuilder_ExtentsFileInfo(t *testing.T) {
 	}
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, filename, src, parser.ParseComments)
-	err = builder.ExtentsFileInfo(file)
+	err = builder.ExtentsFileInfo("dsaingsaf", "dasfsda", file)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
