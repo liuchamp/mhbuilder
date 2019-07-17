@@ -32,5 +32,7 @@ clean:
 	@test ! -e bin/${BIN_NAME} || rm bin/${BIN_NAME}
 
 test:
-	go test ./...
+	go test -cover -coverprofile=coverage.data ./...
+	go tool cover -html=coverage.data -o coverage.html
+    go tool cover -func=coverage.data -o coverage.txt
 

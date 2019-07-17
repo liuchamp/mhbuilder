@@ -4,3 +4,6 @@ vendor
 *main*
 !main.go
 *mhbuilder*
+coverage.data
+coverage.html
+coverage.text
