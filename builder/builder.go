@@ -1,8 +1,10 @@
-package gen
+package builder
 
 import (
 	"errors"
 	"github.com/fatih/structtag"
+	"github.com/hashicorp/consul/vjud/k8s.io/apimachinery/pkg/fields"
+	"github.com/liuchamp/mhbuilder/log"
 	"go/ast"
 	"strings"
 )
@@ -14,6 +16,14 @@ const (
 	PUTMETHMOD   = "Update"
 	PUTCHSUFFIX  = "Match"
 	SCOPESUFFIX  = "Filter"
+
+	TAG_SCOPE = "scope"
+	TAG_JSON  = "json"
+	TAG_BSON  = "bson"
+
+	OPT_ADD    = "add"
+	OPT_UPDATE = "update"
+	OPT_PATCH  = "patch"
 )
 
 type Outer interface {
@@ -58,6 +68,15 @@ type FieldMap struct {
 	Comment   string
 }
 
+func (f *FieldMap) out(scope string, pfm string) (string, error) {
+
+	_, err := f.Tags.Get("scope")
+	if err != nil {
+		f.Tags.Delete("scope")
+	}
+	return "", nil
+}
+
 func (dto *AddDTOMaps) out() (string, error) {
 	return "", nil
 }
@@ -88,8 +107,45 @@ func (builder *Builder) ExtentsFileInfo(fileName string, pkgName string, file *a
 	if errr != nil {
 		return errr
 	}
+
 	builder.FilesMap[fileName] = *fm
 	return nil
+}
+func (builder *Builder) outAddDto(file string) (string, error) {
+	filemap, ok := builder.FilesMap[file]
+	if !ok {
+		return "", errors.New("file not find")
+	}
+	addDTOs := ""
+	for _, modelDetail := range filemap.Models {
+		dtoName := modelDetail.Name + POSTTOSUFFIX
+		fields := ""
+		for _, v := range modelDetail.Fields {
+			log.Debug(v.FieldName)
+			field, err := fieldToString(&v, TAG_SCOPE)
+			if err != nil {
+				fields += field
+			}
+		}
+	}
+
+	return addDTOs, nil
+}
+
+//
+func fieldToString(field *FieldMap, opt string) (string, error) {
+	scoptag, err := field.Tags.Get(TAG_SCOPE)
+	if err != nil {
+		return "", err
+	}
+	var scopes Set
+	for e := range scoptag.Options {
+
+	}
+	if opt == OPT_ADD {
+
+	}
+	return "", nil
 }
 
 func (builder *Builder) extendDTOMap(structsMap map[string]*ast.StructType) (*FileMap, error) {

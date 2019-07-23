@@ -3,6 +3,7 @@ package gen
 import (
 	"fmt"
 	"github.com/KyleBanks/depth"
+	"github.com/liuchamp/mhbuilder/builder"
 	"github.com/liuchamp/mhbuilder/log"
 	"go/ast"
 	"go/build"
@@ -17,7 +18,7 @@ import (
 
 type Parser struct {
 	files map[string]*ast.File
-	Build *Builder
+	Build *builder.Builder
 	// registerTypes is a map that stores [refTypeName][*ast.TypeSpec]
 	registerTypes map[string]*ast.TypeSpec
 
@@ -36,7 +37,7 @@ type Parser struct {
 func NewParser() *Parser {
 	return &Parser{
 		files: make(map[string]*ast.File),
-		Build: NewBuilder(),
+		Build: builder.NewBuilder(),
 	}
 }
 
