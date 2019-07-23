@@ -55,5 +55,8 @@ func (g *Gen) Build(config *Config) error {
 	if err := os.MkdirAll(config.OutputDir, os.ModePerm); err != nil {
 		return err
 	}
+
+	// 将数据写入文件
+
 	return nil
 }

@@ -73,8 +73,6 @@ func (parser *Parser) ParModel(searchDir string) error {
 		return err
 	}
 
-	// 将数据写入目标package
-
 	return nil
 }
 

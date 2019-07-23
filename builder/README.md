@@ -1,6 +1,5 @@
 # builder
 
-
 基于 MongoDB-go-driver，json，针对更新的代码简化工具。本插件只能用于 gin+mongo 的构架中。欢迎使用和建议。
 
 ## 一，软件构架和原理
@@ -13,15 +12,14 @@
 
 在开发中，需要在原有 model 中定义如下 tag，来实现控制中间代码生成。
 
-| tag     | 可选值 | 使用范围 | 描述                                                   |
-| :------ | ------ | -------- | ------------------------------------------------------ |
-| builder | post   | model    | 控制生成 \*AddDTO 和他的 toModel 方法                  |
-|         | put    | updater  | 控制生成必须全部传输的\*UpdateDTO                      |
-|         | patch  | updater  | 控制生成非必须全部传输的\*Match 方法中                 |
-|         |        |          |                                                        |
-| scope   | \*     | filter   | 控制生产*Filter 方法,控制 *UpdateDTO 和 \*Match 方法。 |
-| bind    | \*     | updater  | 主要用于值校验，在*AddDTO 和 *UpdateDTO 中,是直接复制  |
-|         |        |          |                                                        |
+| tag   | 可选值 | 使用范围 | 描述                                                   |
+| :---- | ------ | -------- | ------------------------------------------------------ |
+| build | post   | model    | 控制生成 \*AddDTO 和他的 toModel 方法                  |
+|       | put    | updater  | 控制生成必须全部传输的\*UpdateDTO                      |
+|       | patch  | updater  | 控制生成非必须全部传输的\*Match 方法中                 |
+| scope | \*     | filter   | 控制生产*Filter 方法,控制 *UpdateDTO 和 \*Match 方法。 |
+| bind  | \*     | updater  | 主要用于值校验，在*AddDTO 和 *UpdateDTO 中,是直接复制  |
+|       |        |          |                                                        |
 
 通过上面的 tg，可以控制对应对应代码。这样减少编码和设计思考。
 

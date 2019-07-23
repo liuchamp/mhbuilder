@@ -31,7 +31,7 @@ func TestBuilder_ExtentsFileInfo(t *testing.T) {
 		}
 		t.Log("开始测试")
 		for fname := range builder.FilesMap {
-			s, err := builder.outAddDto(fname)
+			s, err := builder.outAddDtoAndToModel(fname)
 			t.Log(s, err)
 		}
 	})

@@ -3,8 +3,9 @@ package builder
 import (
 	"errors"
 	"github.com/fatih/structtag"
-	"github.com/hashicorp/consul/vjud/k8s.io/apimachinery/pkg/fields"
 	"github.com/liuchamp/mhbuilder/log"
+	"github.com/liuchamp/mhbuilder/utils"
+
 	"go/ast"
 	"strings"
 )
@@ -17,13 +18,19 @@ const (
 	PUTCHSUFFIX  = "Match"
 	SCOPESUFFIX  = "Filter"
 
+	TAG_BUILD = "build"
 	TAG_SCOPE = "scope"
 	TAG_JSON  = "json"
 	TAG_BSON  = "bson"
 
-	OPT_ADD    = "add"
-	OPT_UPDATE = "update"
-	OPT_PATCH  = "patch"
+	BUILD_POST  = "post"
+	BUILD_PUT   = "put"
+	BUILD_PATCH = "patch"
+)
+
+var (
+	NOTAG  = errors.New("Not find Tag\n")
+	NOBODY = errors.New("No Body for File\n")
 )
 
 type Outer interface {
@@ -34,7 +41,7 @@ type Outer interface {
 }
 type Builder struct {
 	FilesMap map[string]FileMap
-	// filename to addDTO
+	// 输出文件的基础路径，一般是OutputDir的绝对路径
 }
 
 func NewBuilder() *Builder {
@@ -61,20 +68,11 @@ type DTOMap struct {
 	Comment string
 	Fields  []FieldMap
 }
-
 type FieldMap struct {
 	FieldName string
+	Types     string
 	Tags      *structtag.Tags
 	Comment   string
-}
-
-func (f *FieldMap) out(scope string, pfm string) (string, error) {
-
-	_, err := f.Tags.Get("scope")
-	if err != nil {
-		f.Tags.Delete("scope")
-	}
-	return "", nil
 }
 
 func (dto *AddDTOMaps) out() (string, error) {
@@ -111,41 +109,114 @@ func (builder *Builder) ExtentsFileInfo(fileName string, pkgName string, file *a
 	builder.FilesMap[fileName] = *fm
 	return nil
 }
-func (builder *Builder) outAddDto(file string) (string, error) {
+func (builder *Builder) outAddDtoAndToModel(file string) (string, error) {
 	filemap, ok := builder.FilesMap[file]
 	if !ok {
 		return "", errors.New("file not find")
 	}
-	addDTOs := ""
+	var bodys []string
 	for _, modelDetail := range filemap.Models {
-		dtoName := modelDetail.Name + POSTTOSUFFIX
-		fields := ""
+		var fields []string
+		var toModels []string
 		for _, v := range modelDetail.Fields {
-			log.Debug(v.FieldName)
-			field, err := fieldToString(&v, TAG_SCOPE)
+			field, toModel, err := addFeildString(&v)
 			if err != nil {
-				fields += field
+				continue
+			}
+			log.Debug("Feildname:", v.FieldName)
+			fields = append(fields, field)
+			toModels = append(toModels, toModel)
+		}
+		if fields != nil || len(fields) > 0 {
+			admot := new(addDtoTemplate)
+			admot.StructName = modelDetail.Name + POSTTOSUFFIX
+			admot.Feilds = fields
+
+			admotCode, err := utils.ParserName(_addDtoTemplate, admot)
+			if err == nil {
+				bodys = append(bodys, admotCode.String())
+			}
+
+		}
+		if toModels != nil {
+			adtmt := new(addDtoToModelTemplate)
+			adtmt.StructName = modelDetail.Name + POSTTOSUFFIX
+			adtmt.Model = modelDetail.Name
+			adtmt.Fields = toModels
+			adtmtCode, err := utils.ParserName(_addDtoToModelTemplate, adtmt)
+			if err == nil {
+				bodys = append(bodys, adtmtCode.String())
 			}
 		}
+
+	}
+	if bodys == nil || len(bodys) < 1 {
+		return "", NOBODY
 	}
 
-	return addDTOs, nil
-}
-
-//
-func fieldToString(field *FieldMap, opt string) (string, error) {
-	scoptag, err := field.Tags.Get(TAG_SCOPE)
+	fileHeader := new(headerTemplate)
+	fileHeader.PkgName = BUILD_POST
+	headerBuffer, err := utils.ParserName(_headerTemplate, fileHeader)
 	if err != nil {
 		return "", err
 	}
-	var scopes Set
-	for e := range scoptag.Options {
-
+	fileOut := new(addFile)
+	fileOut.Body = bodys
+	fileOut.FileHeader = headerBuffer.String()
+	fileBuffer, err := utils.ParserName(_addFile, fileOut)
+	if err != nil {
+		return "", err
 	}
-	if opt == OPT_ADD {
 
+	return fileBuffer.String(), nil
+}
+
+// add model 的字段和toModel方法需要的字段
+// @return field,toModel
+func addFeildString(field *FieldMap) (string, string, error) {
+	sSet, err := fieldCollectionBuild(field)
+	if err != nil {
+		return "", "", err
 	}
-	return "", nil
+	if !sSet.Has(BUILD_POST) {
+		return "", "", NOTAG
+	}
+
+	fieldoutadd := fieldAddTemplate{
+		FiledName: field.FieldName,
+		Types:     field.Types,
+		Tags:      field.Tags.String(),
+	}
+
+	code, err := utils.ParserName(_fieldAddTemplate, fieldoutadd)
+	if err != nil {
+		return "", "", err
+	}
+
+	dtomodel, err := utils.ParserName(_fieldAtdmTemplate, struct {
+		Field string
+	}{
+		Field: field.FieldName,
+	})
+	if err != nil {
+		return "", "", nil
+	}
+	return code.String(), dtomodel.String(), nil
+
+}
+
+// 获取build tag的所有值
+func fieldCollectionBuild(field *FieldMap) (*utils.StringSet, error) {
+	tags, err := field.Tags.Get(TAG_BUILD)
+	if err != nil {
+		return nil, err
+	}
+	stringSet := utils.NewStringSet()
+	stringSet.Add(tags.Name)
+	for _, v := range tags.Options {
+		stringSet.Add(v)
+	}
+	return stringSet, nil
 }
 
 func (builder *Builder) extendDTOMap(structsMap map[string]*ast.StructType) (*FileMap, error) {
