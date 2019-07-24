@@ -22,7 +22,7 @@ import (
 	"fmt"
 	{{if .UseStrConv}}"strconv"{{end}}
 	{{if .EnableBatch }}"sync"{{end}}
-	{{.ImportPackage}}
+	"{{.ImportPackage}}"
 )
 
 `

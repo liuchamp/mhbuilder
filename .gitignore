@@ -11,3 +11,5 @@ coverage.*
 *.dylib
 *.test
 *.out
+testdata/models
+!testdata/models/user.go

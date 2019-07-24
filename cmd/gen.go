@@ -2,7 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/liuchamp/mhbuilder/gen"
+	"github.com/liuchamp/mhbuilder/log"
+	"github.com/liuchamp/mhbuilder/utils"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 // genCmd represents the create code command
@@ -13,8 +17,21 @@ var (
 		Long:  `生成中间代码，包含所有代码`,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("开始生成中间代码指令", files, searchDir, relathionPutAndPatch, outputDir, parseVendor, parseDependency, propertyStrategyFlag)
-			fmt.Println("参数有", args)
+			config := new(gen.Config)
+			config.ParseVendor = parseVendor
+			config.ParseDependency = parseDependency
+			if !utils.CheckStringIsBlank(files) {
+				config.Files = strings.Split(files, ",")
+			}
+			config.SearchDir = searchDir
+			config.RelathionPutAndPatch = relathionPutAndPatch
+			config.OutputDir = outputDir
+			config.PropNamingStrategy = propertyStrategyFlag
 
+			err := gen.New().Build(config)
+			if err != nil {
+				log.Error(err)
+			}
 		},
 	}
 	files                string

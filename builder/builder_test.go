@@ -29,10 +29,17 @@ func TestBuilder_ExtentsFileInfo(t *testing.T) {
 		if builder.FilesMap == nil || len(builder.FilesMap) < 1 {
 			return
 		}
-		t.Log("开始测试")
+		ts.Log("开始测试")
 		for fname := range builder.FilesMap {
 			s, err := builder.outAddDtoAndToModel(fname)
-			t.Log(s, err)
+			ts.Log(s, err)
 		}
+	})
+	t.Run("write", func(ts *testing.T) {
+		if builder.FilesMap == nil || len(builder.FilesMap) < 1 {
+			return
+		}
+		err := builder.WirteFile(SEARCHDIR, BUILD_POST)
+		t.Log(err)
 	})
 }

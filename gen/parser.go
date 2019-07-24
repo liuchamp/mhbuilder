@@ -5,15 +5,13 @@ import (
 	"github.com/KyleBanks/depth"
 	"github.com/liuchamp/mhbuilder/builder"
 	"github.com/liuchamp/mhbuilder/log"
+	"github.com/liuchamp/mhbuilder/utils"
 	"go/ast"
-	"go/build"
 	goparser "go/parser"
 	"go/token"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 )
 
 type Parser struct {
@@ -46,7 +44,7 @@ func (parser *Parser) ParModel(searchDir string) error {
 	if err := parser.getAllGoFileInfo(searchDir); err != nil {
 		return err
 	}
-	pkgName, err := getPkgName(searchDir)
+	pkgName, err := utils.GetPkgName(searchDir)
 	if err != nil {
 		return err
 	}
@@ -160,24 +158,15 @@ func (parser *Parser) getAllGoFileInfoFromDeps(pkg *depth.Pkg) error {
 	return nil
 }
 
-func getPkgName(searchDir string) (string, error) {
-	cmd := exec.Command("go", "list", "-f={{.ImportPath}}")
-	cmd.Dir = searchDir
-	var stdout, stderr strings.Builder
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
+func (parser *Parser) OutFile() error {
+	//build:= parser.Build
+	// 导出post
 
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("execute go list command, %s, stdout:%s, stderr:%s", err, stdout.String(), stderr.String())
-	}
+	// 导出 put
 
-	outStr, _ := stdout.String(), stderr.String()
+	// 导出 patch
 
-	if outStr[0] == '_' { // will shown like _/{GOPATH}/src/{YOUR_PACKAGE} when NOT enable GO MODULE.
-		outStr = strings.TrimPrefix(outStr, "_"+build.Default.GOPATH+"/src/")
-	}
-	f := strings.Split(outStr, "\n")
-	outStr = f[0]
+	// 导出 filter
 
-	return outStr, nil
+	return nil
 }

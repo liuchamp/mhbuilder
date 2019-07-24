@@ -16,12 +16,13 @@ func New() *Gen {
 }
 
 type Config struct {
-	SearchDir          string
-	OutputDir          string
-	PropNamingStrategy string
-	ParseVendor        bool
-	ParseDependency    bool
-	Files              []string
+	SearchDir            string
+	OutputDir            string
+	PropNamingStrategy   string
+	ParseVendor          bool
+	ParseDependency      bool
+	RelathionPutAndPatch string
+	Files                []string
 }
 
 func (g *Gen) Build(config *Config) error {
@@ -57,6 +58,8 @@ func (g *Gen) Build(config *Config) error {
 	}
 
 	// 将数据写入文件
-
+	if err := p.OutFile(); err != nil {
+		return err
+	}
 	return nil
 }

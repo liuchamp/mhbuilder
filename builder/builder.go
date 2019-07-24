@@ -3,8 +3,10 @@ package builder
 import (
 	"errors"
 	"github.com/fatih/structtag"
-	"github.com/liuchamp/mhbuilder/log"
 	"github.com/liuchamp/mhbuilder/utils"
+	"os"
+	"path"
+	"path/filepath"
 
 	"go/ast"
 	"strings"
@@ -82,6 +84,7 @@ func (dto *AddDTOMaps) out() (string, error) {
 type UpdateDTOMap struct {
 }
 
+// 解析go model源文件
 func (builder *Builder) ExtentsFileInfo(fileName string, pkgName string, file *ast.File) error {
 	structsMap := make(map[string]*ast.StructType)
 
@@ -108,67 +111,6 @@ func (builder *Builder) ExtentsFileInfo(fileName string, pkgName string, file *a
 
 	builder.FilesMap[fileName] = *fm
 	return nil
-}
-func (builder *Builder) outAddDtoAndToModel(file string) (string, error) {
-	filemap, ok := builder.FilesMap[file]
-	if !ok {
-		return "", errors.New("file not find")
-	}
-	var bodys []string
-	for _, modelDetail := range filemap.Models {
-		var fields []string
-		var toModels []string
-		for _, v := range modelDetail.Fields {
-			field, toModel, err := addFeildString(&v)
-			if err != nil {
-				continue
-			}
-			log.Debug("Feildname:", v.FieldName)
-			fields = append(fields, field)
-			toModels = append(toModels, toModel)
-		}
-		if fields != nil || len(fields) > 0 {
-			admot := new(addDtoTemplate)
-			admot.StructName = modelDetail.Name + POSTTOSUFFIX
-			admot.Feilds = fields
-
-			admotCode, err := utils.ParserName(_addDtoTemplate, admot)
-			if err == nil {
-				bodys = append(bodys, admotCode.String())
-			}
-
-		}
-		if toModels != nil {
-			adtmt := new(addDtoToModelTemplate)
-			adtmt.StructName = modelDetail.Name + POSTTOSUFFIX
-			adtmt.Model = modelDetail.Name
-			adtmt.Fields = toModels
-			adtmtCode, err := utils.ParserName(_addDtoToModelTemplate, adtmt)
-			if err == nil {
-				bodys = append(bodys, adtmtCode.String())
-			}
-		}
-
-	}
-	if bodys == nil || len(bodys) < 1 {
-		return "", NOBODY
-	}
-
-	fileHeader := new(headerTemplate)
-	fileHeader.PkgName = BUILD_POST
-	headerBuffer, err := utils.ParserName(_headerTemplate, fileHeader)
-	if err != nil {
-		return "", err
-	}
-	fileOut := new(addFile)
-	fileOut.Body = bodys
-	fileOut.FileHeader = headerBuffer.String()
-	fileBuffer, err := utils.ParserName(_addFile, fileOut)
-	if err != nil {
-		return "", err
-	}
-
-	return fileBuffer.String(), nil
 }
 
 // add model 的字段和toModel方法需要的字段
@@ -219,6 +161,38 @@ func fieldCollectionBuild(field *FieldMap) (*utils.StringSet, error) {
 	return stringSet, nil
 }
 
+// 将数据写入对应文件夹
+func (builder *Builder) WirteFile(outDir, opt string) error {
+	// 文件输出的实际目录
+	fileP := filepath.Join(outDir, opt)
+	if err := os.MkdirAll(fileP, os.ModePerm); err != nil {
+		return err
+	}
+
+	for fname := range builder.FilesMap {
+		fileName := path.Base(fname)
+		s, err := builder.selectOutChange(fname, opt)
+		if err != nil {
+			return err
+		}
+		file, err := os.Create(path.Join(fileP, fileName))
+		if err != nil {
+			return err
+		}
+		var data []byte = []byte(s)
+		file.Write(data)
+		file.Close()
+	}
+	return nil
+}
+func (builder *Builder) selectOutChange(sourceFile, opt string) (string, error) {
+	if opt == BUILD_POST {
+		return builder.outAddDtoAndToModel(sourceFile)
+	}
+	return "", errors.New("can not find opt")
+}
+
+// 需要拓展的数据，按照文件/结构的方式展开
 func (builder *Builder) extendDTOMap(structsMap map[string]*ast.StructType) (*FileMap, error) {
 	if structsMap == nil || len(structsMap) < 1 {
 		return nil, errors.New("not find struct")
