@@ -54,5 +54,4 @@ func init() {
 	genCmd.Flags().BoolVarP(&parseDependency, "parseDependency", "p", false, "Parse go files in outside dependency folder, disabled by default")
 	genCmd.Flags().StringVarP(&propertyStrategyFlag, "propertyStrategy", "s", "camelcase", "Property Naming Strategy like snakecase,camelcase,pascalcase")
 	rootCmd.AddCommand(genCmd)
-
 }

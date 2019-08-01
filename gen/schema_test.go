@@ -28,3 +28,19 @@ func TestTransToValidSchemeType(t *testing.T) {
 	// should accept any type, due to user defined types
 	TransToValidSchemeType("oops")
 }
+
+func TestIsGolangPrimitiveType(t *testing.T) {
+	t.Run("fase", func(tt *testing.T) {
+		assert.False(tt, IsGolangPrimitiveType("sdafdsa"), "sdafds 不是基本类型")
+	})
+	t.Run("true", func(tt *testing.T) {
+		assert.True(tt, IsGolangPrimitiveType("int"), "int 是基本类型")
+		assert.True(tt, IsGolangPrimitiveType("string"), "string 不是基本类型")
+	})
+}
+
+func TestIsNumericType(t *testing.T) {
+	assert.True(t, IsNumericType("integer"))
+	assert.True(t, IsNumericType("number"))
+	assert.False(t, IsNumericType("numbers"))
+}
