@@ -71,8 +71,6 @@ func (parser *Parser) ParModel(searchDir string) error {
 		return err
 	}
 
-	// 生成dto
-
 	return nil
 }
 

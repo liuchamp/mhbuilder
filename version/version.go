@@ -2,18 +2,16 @@ package version
 
 import (
 	"fmt"
-	"github.com/hashicorp/consul/version"
 	"runtime"
-	"time"
 )
 
 // The git commit that was compiled. This will be filled in by the compiler.
-var GitCommit = version.GitCommit
+const GitCommit = "5626f575fb4dfa60b8ef47caa046fe1d0e015423"
 
 // The main version number that is being run at the moment.
 const Version = "0.1.0"
 
-var BuildDate = time.Now().String()
+const BuildDate = "2019-08-01-21:24:50"
 
 var GoVersion = runtime.Version()
 
