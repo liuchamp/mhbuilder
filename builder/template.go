@@ -18,8 +18,6 @@ var _headerTemplate = `
 package {{.PkgName}}
 
 import (
-	"context"
-	"fmt"
 	{{if .UseStrConv}}"strconv"{{end}}
 	{{if .EnableBatch }}"sync"{{end}}
 	"{{.ImportPackage}}"
@@ -58,16 +56,18 @@ type {{.StructName}} struct {
 type addDtoToModelTemplate struct {
 	StructName string
 	Model      string
+	ParentPk   string
 	Fields     []string
 }
 
 var _addDtoToModelTemplate = `
 	// {{.StructName}} function To model
-func (dto *{{.StructName}})toModel() *{{.Model}} {
-	model:=&{{.Model}}{}
+func (dto *{{.StructName}})toModel() *{{.ParentPk}}.{{.Model}} {
+	model:=&{{.ParentPk}}.{{.Model}}{}
 {{range $element := .Fields}}
 	{{$element}}
 {{end}}
+	return model
 }
 `
 

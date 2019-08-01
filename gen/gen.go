@@ -58,7 +58,7 @@ func (g *Gen) Build(config *Config) error {
 	}
 
 	// 将数据写入文件
-	if err := p.OutFile(); err != nil {
+	if err := p.OutFile(config.OutputDir); err != nil {
 		return err
 	}
 	return nil

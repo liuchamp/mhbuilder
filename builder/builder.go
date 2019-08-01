@@ -25,9 +25,10 @@ const (
 	TAG_JSON  = "json"
 	TAG_BSON  = "bson"
 
-	BUILD_POST  = "post"
-	BUILD_PUT   = "put"
-	BUILD_PATCH = "patch"
+	BUILD_POST   = "post"
+	BUILD_PUT    = "put"
+	BUILD_PATCH  = "patch"
+	BUILD_FILTER = "filter"
 )
 
 var (
@@ -204,8 +205,14 @@ func (builder *Builder) extendDTOMap(structsMap map[string]*ast.StructType) (*Fi
 		dtom.Name = k
 		var fields []FieldMap
 		for _, vf := range v.Fields.List {
+			if len(vf.Names) < 1 {
+				continue
+			}
 			field := FieldMap{}
 			field.FieldName = vf.Names[0].Name
+			fType := vf.Type.(*ast.Ident)
+			field.Types = fType.Name
+
 			if vf.Tag != nil {
 				tag := vf.Tag.Value
 				tag = strings.Trim(tag, "`")

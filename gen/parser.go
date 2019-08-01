@@ -71,6 +71,8 @@ func (parser *Parser) ParModel(searchDir string) error {
 		return err
 	}
 
+	// 生成dto
+
 	return nil
 }
 
@@ -158,15 +160,23 @@ func (parser *Parser) getAllGoFileInfoFromDeps(pkg *depth.Pkg) error {
 	return nil
 }
 
-func (parser *Parser) OutFile() error {
-	//build:= parser.Build
+func (parser *Parser) OutFile(outDir string) error {
+	build := parser.Build
 	// 导出post
-
-	// 导出 put
-
-	// 导出 patch
-
-	// 导出 filter
-
+	if err := build.WirteFile(outDir, builder.BUILD_POST); err != nil {
+		return err
+	}
+	//// 导出 put
+	//if err:=build.WirteFile(outDir,builder.BUILD_PUT); err!=nil {
+	//	return err
+	//}
+	//// 导出 patch
+	//if err:=build.WirteFile(outDir,builder.BUILD_PATCH); err!=nil {
+	//	return err
+	//}
+	//// 导出 filter
+	//if err:=build.WirteFile(outDir,builder.BUILD_FILTER); err!=nil {
+	//	return err
+	//}
 	return nil
 }

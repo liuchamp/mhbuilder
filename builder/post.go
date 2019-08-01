@@ -5,6 +5,7 @@ import (
 	"github.com/liuchamp/mhbuilder/log"
 	"github.com/liuchamp/mhbuilder/utils"
 	"path"
+	"strings"
 )
 
 func (builder *Builder) outAddDtoAndToModel(file string) (string, error) {
@@ -46,6 +47,8 @@ func (builder *Builder) outAddDtoAndToModel(file string) (string, error) {
 			adtmt.StructName = modelDetail.Name + POSTTOSUFFIX
 			adtmt.Model = modelDetail.Name
 			adtmt.Fields = toModels
+			pkgs := strings.Split(pkg, "/")
+			adtmt.ParentPk = pkgs[len(pkgs)-1]
 			adtmtCode, err := utils.ParserName(_addDtoToModelTemplate, adtmt)
 			if err == nil {
 				bodys = append(bodys, adtmtCode.String())
