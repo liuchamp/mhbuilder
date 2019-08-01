@@ -20,7 +20,7 @@ help:
 	@echo '    make clean           Clean the directory tree.'
 	@echo
 
-build:
+build: test
 	@echo "building ${BIN_NAME} ${VERSION}"
 	@echo "GOPATH=${GOPATH}"
 	go build -ldflags "-X github.com/liuchamp/mhbuilder/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/liuchamp/mhbuilder/version.BuildDate=${BUILD_DATE}" -o bin/${BIN_NAME}

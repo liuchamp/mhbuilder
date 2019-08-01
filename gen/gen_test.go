@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-const SEARCHDIR = "../testdata/models"
+const SEARCHDIR = "/Users/mac/Code/go/src/github.com/liuchamp/mhbuilder/testdata/models"
 
 func TestNew(t *testing.T) {
 	gen := New()
