@@ -4,3 +4,12 @@ vendor
 *main*
 !main.go
 *mhbuilder*
+coverage.*
+!coverage.go
+*.exe
+*.dll
+*.dylib
+*.test
+*.out
+testdata/models
+!testdata/models/user.go
