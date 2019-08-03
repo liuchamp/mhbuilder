@@ -229,3 +229,17 @@ func (builder *Builder) extendDTOMap(structsMap map[string]*ast.StructType) (*Fi
 	}
 	return adm, nil
 }
+
+func (builder *Builder) checkFileExsit(file string) (sf *FileMap, pkg string, err error) {
+	f, ok := builder.FilesMap[file]
+	pkg, err = utils.GetPkgName(path.Dir(file))
+	if err != nil {
+		return nil, "", err
+	}
+
+	if !ok {
+		return nil, "", errors.New("file not find")
+	}
+
+	return &f, pkg, nil
+}
