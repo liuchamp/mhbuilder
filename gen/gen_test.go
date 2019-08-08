@@ -1,6 +1,7 @@
 package gen
 
 import (
+	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
@@ -17,17 +18,14 @@ func TestNew(t *testing.T) {
 		ParseVendor:          false,
 		ParseDependency:      false,
 	}
-	t.Run("withNotParse", func(t *testing.T) {
-		if err := gen.Build(c); err != nil {
-			t.Error(err)
-		}
+	Convey("构建不包含vendor", t, func() {
+		err := gen.Build(c)
+		So(err, ShouldEqual, nil)
 	})
-	t.Run("withParse", func(t *testing.T) {
+	Convey("构建包含vendor", t, func() {
 		c.ParseDependency = true
 		c.ParseVendor = true
-		if err := gen.Build(c); err != nil {
-			t.Error(err)
-		}
+		err := gen.Build(c)
+		So(err, ShouldEqual, nil)
 	})
-
 }

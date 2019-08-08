@@ -1,4 +1,4 @@
-package gen
+package parser
 
 import (
 	"fmt"
@@ -16,9 +16,6 @@ import (
 
 type Parser struct {
 	files map[string]*ast.File
-	Build *builder.Builder
-	// registerTypes is a map that stores [refTypeName][*ast.TypeSpec]
-	registerTypes map[string]*ast.TypeSpec
 
 	PropNamingStrategy string
 	PkgName            string
@@ -35,13 +32,27 @@ type Parser struct {
 func NewParser() *Parser {
 	return &Parser{
 		files: make(map[string]*ast.File),
-		Build: builder.NewBuilder(),
 	}
 }
 
+func (parser *Parser) GetFileMap() map[string]*ast.File {
+	return parser.files
+}
+
+// 解析过程中，需要保证目录没有 post,put,filter,patch目录
 func (parser *Parser) ParModel(searchDir string) error {
 	log.Debug("Generate general API Info, search dir: ", searchDir)
-	if err := parser.getAllGoFileInfo(searchDir); err != nil {
+	searchDirAbs, err := filepath.Abs(searchDir)
+	if err != nil {
+		return err
+	}
+
+	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_POST))
+	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_PUT))
+	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_FILTER))
+	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_PATCH))
+
+	if err := parser.getAllGoFileInfo(searchDirAbs); err != nil {
 		return err
 	}
 	pkgName, err := utils.GetPkgName(searchDir)
@@ -70,7 +81,6 @@ func (parser *Parser) ParModel(searchDir string) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -78,13 +88,6 @@ func (parser *Parser) ParModel(searchDir string) error {
 func (parser *Parser) ExtentsFile() error {
 	if parser.files == nil || len(parser.files) < 1 {
 		return fmt.Errorf("not find file")
-	}
-	for k, v := range parser.files {
-		err := parser.Build.ExtentsFileInfo(k, parser.PkgName, v)
-		if err != nil {
-			log.Errorf("Can not Extend file: %s in package: %s", k, parser.PkgName)
-			return err
-		}
 	}
 	return nil
 }
@@ -128,6 +131,7 @@ func (parser *Parser) Skip(path string, f os.FileInfo) error {
 	return nil
 }
 
+// 解析依赖目录或者文件
 func (parser *Parser) getAllGoFileInfoFromDeps(pkg *depth.Pkg) error {
 	if pkg.Internal || !pkg.Resolved { // ignored internal and not resolved dependencies
 		return nil
@@ -155,26 +159,5 @@ func (parser *Parser) getAllGoFileInfoFromDeps(pkg *depth.Pkg) error {
 		}
 	}
 
-	return nil
-}
-
-func (parser *Parser) OutFile(outDir string) error {
-	build := parser.Build
-	// 导出post
-	if err := build.WirteFile(outDir, builder.BUILD_POST); err != nil {
-		return err
-	}
-	//// 导出 put
-	//if err:=build.WirteFile(outDir,builder.BUILD_PUT); err!=nil {
-	//	return err
-	//}
-	//// 导出 patch
-	//if err:=build.WirteFile(outDir,builder.BUILD_PATCH); err!=nil {
-	//	return err
-	//}
-	//// 导出 filter
-	//if err:=build.WirteFile(outDir,builder.BUILD_FILTER); err!=nil {
-	//	return err
-	//}
 	return nil
 }

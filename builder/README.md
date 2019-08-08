@@ -21,7 +21,7 @@
 | bind  | \*     | updater  | 主要用于值校验，在*AddDTO 和 *UpdateDTO 中,是直接复制  |
 |       |        |          |                                                        |
 
-通过上面的 tg，可以控制对应对应代码。这样减少编码和设计思考。
+通过上面的 tag，可以控制对应对应代码。这样减少编码和设计思考。
 
 ### scop 标签
 
@@ -31,7 +31,7 @@ scope 标签，用于控制字段权限。用于控制 get 方法的返回值，
 | -------: | ------------------------------------------------------------------------ |
 |      1xx | 公共数据，也是默认数据,                                                  |
 |      2xx | 非内部人员能查阅和修改的数据，于用户相关的数据。例如用户表中用户 name 等 |
-|      3xx | 运营人员能查阅的数据                                                     |
+|      3xx | 代理商管理人员能查阅的数据                                               |
 |      4xx | 运营人员能查阅的数据                                                     |
 |      5xx | 运营人员能查阅的数据                                                     |
 |      6xx | 运营人员能查阅的数据                                                     |
@@ -61,12 +61,20 @@ mhupdater -h
 
 - \*AddDTO 在 Post 方法中使用。
 - \*UpdateDTO 在 put 方法中使用,当值不存在时，会报错。
+
+  | 范围 | 参数名   | 类型                   | 描述                       |
+  | ---- | -------- | ---------------------- | -------------------------- |
+  | i    | valueMap | map[string]interface{} | put 方法 body 里面的映射值 |
+  | i    | scope    | int                    | 请求时，用户的 scope 值    |
+  | o    | updater  | interface{}            | 更新操作                   |
+  | o    | err      | error                  | 构架 updater 过程中的 Id   |
+
 - \*Match 方法主要是更新部分字段，可根据参数设置 put,patch 关系。方法参数如下：
 
   | 范围 | 参数名   | 类型                   | 描述                           |
   | ---- | -------- | ---------------------- | ------------------------------ |
   | i    | valueMap | map[string]interface{} | put 方法 body 里面的映射值     |
-  | i    | scopes   | []string               | 请求时，用户的 scope 值        |
+  | i    | scope    | int                    | 请求时，用户的 scope 值        |
   | o    | updater  | interface{}            | 更新操作的具体值               |
   | o    | err      | error                  | 代码映射和权限构建过程中的错误 |
 
@@ -74,10 +82,69 @@ mhupdater -h
 
   | 范围 | 参数名 | 类型        | 描述                           |
   | ---- | ------ | ----------- | ------------------------------ |
-  | i    | scopes | []string    | 请求时，用户的 scope 值        |
+  | i    | scope  | int         | 请求时，用户的 scope 值        |
   | o    | filter | interface{} | 过滤条件                       |
   | o    | err    | error       | 代码映射和权限构建过程中的错误 |
 
 当然也可以在这个之上进行拓展代码。比如生成\*Sort 方法，来控制查询结果排序等。
+
+### \*Fliter 代码
+
+主要用于获取数据时的过滤，限制返回数据集合。eg：
+
+```Go
+package filter
+// 默认是0， 识别范围0-100
+func UserFilter(scope int) interface{} {
+	filter := bson.M{}
+	if scope < xxx {
+		filter[field] = bsonx.Int32(0)
+	}
+	if scope < xxx {
+		filter[field] = bsonx.Int32(0)
+	}
+	return filter
+}
+```
+
+    注意，没有 scope<0 这个条件
+
+### \*Match 代码
+
+```Go
+package filter
+func UserMatch(value map[string]interface{}, scope int) (updater interface{}, err error) {
+	if value == nil || len(value) == 0 {
+		return nil, errors.New("value nil")
+	}
+	up := bson.M{}
+	for k, v := range value {
+		if k == xxx && scope < xxx {
+			up[k] = v
+		}
+	}
+	return bson.M{"$set": up}, nil
+}
+```
+
+### \*UpdateDTO 代码
+
+在 put 方法中， 必须保证 required 字段上传，同时还需要限制传入遍历的限制。
+
+```Go
+func UserUpdateDTO(value map[string]interface{}, scope int) (updater interface{}, err error) {
+	if value == nil || len(value) == 0 {
+		return nil, errors.New("value nil")
+	}
+	sArrayxxx := []string{"dsafdsaf", "dsafdsfa", "dsafdsaf"}
+	up := bson.M{}
+	for k, v := range value {
+		if k == xxx && scope < xxx && arrays.ContainsString(sArrayxxx, k) != -1 {
+			up[k_b] = v
+		}
+	}
+	return bson.M{"$set": up}, nil
+}
+```
 
 出来可以控制 models(默认-o 参数)目录外，还可以控制某个文件的代码生成。只不过是将参数改为-f。

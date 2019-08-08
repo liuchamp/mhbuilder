@@ -26,7 +26,7 @@ help:
 
 
 
-build: test
+build: test version
 	@echo "building ${BIN_NAME} ${GIT_VERSION} ${BUILD_DATE} ${GIT_COMMIT}"
 	@echo "GOPATH=${GOPATH}"
 	@echo ""
@@ -38,7 +38,7 @@ get-deps:
 clean:
 	@test ! -e bin/${BIN_NAME} || rm bin/${BIN_NAME}
 
-test: version
+test:
 	go test -v -cover -coverprofile=coverage.data ./...
 	go tool cover -html=coverage.data -o coverage.html &&  go tool cover -func=coverage.data -o coverage.txt
 
