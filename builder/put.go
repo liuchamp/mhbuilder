@@ -1,11 +1,5 @@
 package builder
 
-import (
-	"errors"
-	"github.com/wxnacy/wgo/arrays"
-	"go.mongodb.org/mongo-driver/bson"
-)
-
 /**
 产生更新代码
 更新代码格式
@@ -14,7 +8,7 @@ import (
 //1. 收集包含特定scope的字段集合
 //2. 数据集合做下面判断
 //3. 在编码过冲中，将数据做如下判断
-func UserUpdateDTO(value map[string]interface{}, scope int) (updater interface{}, err error) {
+/*func UserUpdateDTO(value map[string]interface{}, scope int) (updater interface{}, err error) {
 	if value == nil || len(value) == 0 {
 		return nil, errors.New("value nil")
 	}
@@ -27,3 +21,4 @@ func UserUpdateDTO(value map[string]interface{}, scope int) (updater interface{}
 	}
 	return bson.M{"$set": up}, nil
 }
+*/

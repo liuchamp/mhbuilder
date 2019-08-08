@@ -1,9 +1,8 @@
-package gen
+package parser
 
 import (
 	"fmt"
 	"github.com/KyleBanks/depth"
-	"github.com/liuchamp/mhbuilder/builder"
 	"github.com/liuchamp/mhbuilder/log"
 	"github.com/liuchamp/mhbuilder/utils"
 	"go/ast"
@@ -16,7 +15,6 @@ import (
 
 type Parser struct {
 	files map[string]*ast.File
-	Build *builder.Builder
 	// registerTypes is a map that stores [refTypeName][*ast.TypeSpec]
 	registerTypes map[string]*ast.TypeSpec
 
@@ -35,7 +33,6 @@ type Parser struct {
 func NewParser() *Parser {
 	return &Parser{
 		files: make(map[string]*ast.File),
-		Build: builder.NewBuilder(),
 	}
 }
 
@@ -70,7 +67,6 @@ func (parser *Parser) ParModel(searchDir string) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -78,13 +74,6 @@ func (parser *Parser) ParModel(searchDir string) error {
 func (parser *Parser) ExtentsFile() error {
 	if parser.files == nil || len(parser.files) < 1 {
 		return fmt.Errorf("not find file")
-	}
-	for k, v := range parser.files {
-		err := parser.Build.ExtentsFileInfo(k, parser.PkgName, v)
-		if err != nil {
-			log.Errorf("Can not Extend file: %s in package: %s", k, parser.PkgName)
-			return err
-		}
 	}
 	return nil
 }
@@ -155,26 +144,5 @@ func (parser *Parser) getAllGoFileInfoFromDeps(pkg *depth.Pkg) error {
 		}
 	}
 
-	return nil
-}
-
-func (parser *Parser) OutFile(outDir string) error {
-	build := parser.Build
-	// 导出post
-	if err := build.WirteFile(outDir, builder.BUILD_POST); err != nil {
-		return err
-	}
-	//// 导出 put
-	//if err:=build.WirteFile(outDir,builder.BUILD_PUT); err!=nil {
-	//	return err
-	//}
-	//// 导出 patch
-	//if err:=build.WirteFile(outDir,builder.BUILD_PATCH); err!=nil {
-	//	return err
-	//}
-	//// 导出 filter
-	//if err:=build.WirteFile(outDir,builder.BUILD_FILTER); err!=nil {
-	//	return err
-	//}
 	return nil
 }

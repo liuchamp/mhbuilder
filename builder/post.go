@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"errors"
 	"github.com/liuchamp/mhbuilder/log"
 	"github.com/liuchamp/mhbuilder/utils"
 	"path"
@@ -89,15 +88,11 @@ var _fieldAddTemplate = "{{.FiledName}} {{.Types}} `{{.Tags}}`"
 
 var _fieldAtdmTemplate = "model.{{.Field}} = dto.{{.Field}}"
 
-func (builder *Builder) outAddDtoAndToModel(file string) (string, error) {
-	filemap, ok := builder.FilesMap[file]
-	pkg, err := utils.GetPkgName(path.Dir(file))
+func (builder *Builder) outAddDtoAndToModel() (string, error) {
+	filemap := builder.fm
+	pkg, err := utils.GetPkgName(path.Dir(builder.FileName))
 	if err != nil {
 		return "", nil
-	}
-
-	if !ok {
-		return "", errors.New("file not find")
 	}
 	var bodys []string
 	for _, modelDetail := range filemap.Models {

@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"github.com/liuchamp/mhbuilder/parser"
 	"os"
 	"path/filepath"
 )
@@ -43,7 +44,7 @@ func (g *Gen) Build(config *Config) error {
 	}
 
 	// 解析文件夹，文档，并写入Parser对象中
-	p := NewParser()
+	p := parser.NewParser()
 	p.PropNamingStrategy = config.PropNamingStrategy
 	p.ParseVendor = config.ParseVendor
 	p.ParseDependency = config.ParseVendor
@@ -58,8 +59,6 @@ func (g *Gen) Build(config *Config) error {
 	}
 
 	// 将数据写入文件
-	if err := p.OutFile(config.OutputDir); err != nil {
-		return err
-	}
+
 	return nil
 }

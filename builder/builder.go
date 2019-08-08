@@ -3,11 +3,8 @@ package builder
 import (
 	"errors"
 	"github.com/fatih/structtag"
+	"github.com/liuchamp/mhbuilder/log"
 	"github.com/liuchamp/mhbuilder/utils"
-	"os"
-	"path"
-	"path/filepath"
-
 	"go/ast"
 	"strings"
 )
@@ -36,21 +33,17 @@ var (
 	NOBODY = errors.New("No Body for File\n")
 )
 
-type Outer interface {
-	// 代码生成策略
-	// 1 先将代码生成于 tmp 中，
-	// 2 代码生成后，tmp目录删除
-	out() (string, error)
-}
 type Builder struct {
-	FilesMap map[string]FileMap
+	PkgName  string
+	FileName string
+	file     *ast.File
 	// 输出文件的基础路径，一般是OutputDir的绝对路径
+	fm *FileMap
 }
 
-func NewBuilder() *Builder {
-	return &Builder{
-		FilesMap: make(map[string]FileMap),
-	}
+type BuilderOut struct {
+	Post   string
+	Filter string
 }
 
 type FileMap struct {
@@ -71,6 +64,7 @@ type DTOMap struct {
 	Comment string
 	Fields  []FieldMap
 }
+
 type FieldMap struct {
 	FieldName string
 	Types     string
@@ -78,23 +72,19 @@ type FieldMap struct {
 	Comment   string
 }
 
-func (dto *AddDTOMaps) out() (string, error) {
-	return "", nil
-}
-
-type UpdateDTOMap struct {
-}
-
 // 解析go model源文件
-func (builder *Builder) ExtentsFileInfo(fileName string, pkgName string, file *ast.File) error {
+func NewBuilder(pkg string, fileName string, file *ast.File) *Builder {
+	builder := &Builder{
+		PkgName:  pkg,
+		FileName: fileName,
+		file:     file,
+	}
 	structsMap := make(map[string]*ast.StructType)
-
 	collectStructs := func(x ast.Node) bool {
 		ts, ok := x.(*ast.TypeSpec)
 		if !ok || ts.Type == nil {
 			return true
 		}
-
 		// 获取结构体名称
 		structName := ts.Name.Name
 		s, ok := ts.Type.(*ast.StructType)
@@ -107,11 +97,10 @@ func (builder *Builder) ExtentsFileInfo(fileName string, pkgName string, file *a
 	ast.Inspect(file, collectStructs)
 	fm, errr := builder.extendDTOMap(structsMap)
 	if errr != nil {
-		return errr
+		return nil
 	}
-
-	builder.FilesMap[fileName] = *fm
-	return nil
+	builder.fm = fm
+	return builder
 }
 
 // add model 的字段和toModel方法需要的字段
@@ -163,34 +152,22 @@ func fieldCollectionBuild(field *FieldMap) (*utils.StringSet, error) {
 }
 
 // 将数据写入对应文件夹
-func (builder *Builder) WirteFile(outDir, opt string) error {
-	// 文件输出的实际目录
-	fileP := filepath.Join(outDir, opt)
-	if err := os.MkdirAll(fileP, os.ModePerm); err != nil {
-		return err
+func (builder *Builder) WirteFile() (*BuilderOut, error) {
+	bot := &BuilderOut{}
+	op, err := builder.outAddDtoAndToModel()
+	if err != nil {
+		return nil, err
 	}
+	bot.Post = op
+	log.Debug(bot.Post)
 
-	for fname := range builder.FilesMap {
-		fileName := path.Base(fname)
-		s, err := builder.selectOutChange(fname, opt)
-		if err != nil {
-			return err
-		}
-		file, err := os.Create(path.Join(fileP, fileName))
-		if err != nil {
-			return err
-		}
-		var data []byte = []byte(s)
-		file.Write(data)
-		file.Close()
+	flt, err := builder.outFilter()
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
-func (builder *Builder) selectOutChange(sourceFile, opt string) (string, error) {
-	if opt == BUILD_POST {
-		return builder.outAddDtoAndToModel(sourceFile)
-	}
-	return "", errors.New("can not find opt")
+	bot.Filter = flt
+	log.Debug(bot.Filter)
+	return bot, nil
 }
 
 // 需要拓展的数据，按照文件/结构的方式展开
@@ -228,18 +205,4 @@ func (builder *Builder) extendDTOMap(structsMap map[string]*ast.StructType) (*Fi
 		adm.Models = append(adm.Models, dtom)
 	}
 	return adm, nil
-}
-
-func (builder *Builder) checkFileExsit(file string) (sf *FileMap, pkg string, err error) {
-	f, ok := builder.FilesMap[file]
-	pkg, err = utils.GetPkgName(path.Dir(file))
-	if err != nil {
-		return nil, "", err
-	}
-
-	if !ok {
-		return nil, "", errors.New("file not find")
-	}
-
-	return &f, pkg, nil
 }

@@ -1,5 +1,14 @@
 package builder
 
+import (
+	"errors"
+	"github.com/fatih/structtag"
+	"github.com/liuchamp/mhbuilder/utils"
+	"sort"
+	"strconv"
+	"strings"
+)
+
 /**
 参数过滤代码
 
@@ -11,11 +20,11 @@ type scopeFilterT struct {
 
 // 在导出前，收集scope相同的field。然后输出到对应的,和sortMap类似的结构中。
 var _scopeFilterT = `
-if scope< {{.Scope}} {
-{{range $element := .Fields}}
-	filter[{{$element}}] = bsonx.Int32(0)
-{{end}}
-}
+	if scope< {{.Scope}} {
+	{{range $element := .Fields}}
+		filter["{{$element}}"] = bsonx.Int32(0)
+	{{end}}
+    }
 `
 
 type filterTemp struct {
@@ -27,9 +36,7 @@ type filterTemp struct {
 var _filterTemp = `
 func {{.ModelName}}Filter(scope int) interface{} {
     filter := bson.M{}
-{{range $element := .SortMap}}
-	{{$element}}
-{{end}}
+    {{.SortMap}}
 	return filter
 }
 `
@@ -46,7 +53,7 @@ var _filterFileTemp = `
 /* 
   Package {{.PkgName}} is a generated mc cache package.
   It is generated from:
-  ARGS
+
 */
 
 package {{.PkgName}}
@@ -62,23 +69,114 @@ import (
 {{end}}
 `
 
-func (builder *Builder) OutFilter(file string) (string, error) {
-	f, pkg, err := builder.checkFileExsit(file)
+func (builder *Builder) outFilter() (string, error) {
 
-	if err != nil {
-		return "", err
+	var fls []string
+	for _, v := range builder.fm.Models {
+		fl, err := modelTofilter(&v)
+		if err != nil {
+			return "", err
+		}
+		fls = append(fls, fl)
 	}
 
 	fft := new(filterFileTemp)
-
-	return "", nil
+	fft.PkgName = BUILD_FILTER
+	fft.Filters = fls
+	fft.Imps = []string{builder.fm.PkgName}
+	f, err := utils.ParserName(_filterFileTemp, fft)
+	if err != nil {
+		return "", err
+	}
+	return f.String(), nil
 }
 
-func outFieldTemp(name string) (string, error) {
-	return "", nil
+func modelTofilter(modelMap *ModelExtend) (string, error) {
+	smap, scopes, err := colScopeToMap(modelMap)
+	if err != nil {
+		return "", err
+	}
+	if !sort.IntsAreSorted(scopes) {
+		sort.Ints(scopes)
+	}
+
+	sScopeT := make(map[int]string)
+	for k, v := range smap {
+		sft := scopeFilterT{}
+		sft.Scope = k
+		sft.Fields = v
+		f, err := utils.ParserName(_scopeFilterT, sft)
+		if err == nil {
+			sScopeT[k] = f.String()
+		}
+	}
+	sortsMap := ""
+	for _, v := range scopes {
+		sm := sScopeT[v]
+		sortsMap += sm
+	}
+	flt := filterTemp{}
+	flt.ModelName = modelMap.Name
+	flt.SortMap = sortsMap
+	modelFilter, err := utils.ParserName(_filterTemp, flt)
+	if err != nil {
+		return "", err
+	}
+	return modelFilter.String(), nil
 }
 
-// 收集，分类带有scope的字段，并且排序： 大-》小
-func colScopeToMap() {
+// 收集，分类带有scope的字段
+// 实现sortedMap
+func colScopeToMap(modelMap *ModelExtend) (map[int][]string, []int, error) {
+	sScope := make(map[int][]string)
+	intSet := utils.NewIntSet()
 
+	for _, v := range modelMap.Fields {
+		if utils.CheckStringIsBlank(v.FieldName) || v.Tags.Len() == 0 {
+			continue
+		}
+		btag, err := v.Tags.Get(TAG_BUILD)
+		if err != nil || !checkTagHasBuildOp(btag) {
+			continue
+		}
+		stag, err := v.Tags.Get(TAG_SCOPE)
+		if err != nil {
+			continue
+		}
+		scope := stag.Name
+
+		sint, err := strconv.Atoi(scope)
+		if err != nil || sint > 1000 || sint < 1 {
+			return nil, nil, errors.New("scope value is error")
+		}
+		fn := v.FieldName
+		fs := ""
+		fstag, rre := v.Tags.Get("bson")
+		if rre == nil {
+			// 存在bson tag， 那么就填入
+			fs = fstag.Name
+		} else {
+			fs = strings.ToLower(fn)
+		}
+		if val, ok := sScope[sint]; ok {
+			val = append(val, fs)
+			sScope[sint] = val
+		} else {
+			sScope[sint] = []string{fs}
+		}
+		if !intSet.Has(sint) {
+			intSet.Add(sint)
+		}
+	}
+	return sScope, intSet.List(), nil
+}
+
+func checkTagHasBuildOp(btag *structtag.Tag) bool {
+	if btag.Name == BUILD_FILTER || btag.Name == BUILD_PATCH || btag.Name == BUILD_PUT {
+		return true
+	}
+	if btag.HasOption(BUILD_FILTER) || btag.HasOption(BUILD_PATCH) || btag.HasOption(BUILD_PUT) {
+		return true
+	}
+	return false
 }
