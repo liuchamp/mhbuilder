@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"github.com/KyleBanks/depth"
+	"github.com/liuchamp/mhbuilder/builder"
 	"github.com/liuchamp/mhbuilder/log"
 	"github.com/liuchamp/mhbuilder/utils"
 	"go/ast"
@@ -15,8 +16,6 @@ import (
 
 type Parser struct {
 	files map[string]*ast.File
-	// registerTypes is a map that stores [refTypeName][*ast.TypeSpec]
-	registerTypes map[string]*ast.TypeSpec
 
 	PropNamingStrategy string
 	PkgName            string
@@ -36,9 +35,24 @@ func NewParser() *Parser {
 	}
 }
 
+func (parser *Parser) GetFileMap() map[string]*ast.File {
+	return parser.files
+}
+
+// 解析过程中，需要保证目录没有 post,put,filter,patch目录
 func (parser *Parser) ParModel(searchDir string) error {
 	log.Debug("Generate general API Info, search dir: ", searchDir)
-	if err := parser.getAllGoFileInfo(searchDir); err != nil {
+	searchDirAbs, err := filepath.Abs(searchDir)
+	if err != nil {
+		return err
+	}
+
+	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_POST))
+	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_PUT))
+	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_FILTER))
+	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_PATCH))
+
+	if err := parser.getAllGoFileInfo(searchDirAbs); err != nil {
 		return err
 	}
 	pkgName, err := utils.GetPkgName(searchDir)
@@ -117,6 +131,7 @@ func (parser *Parser) Skip(path string, f os.FileInfo) error {
 	return nil
 }
 
+// 解析依赖目录或者文件
 func (parser *Parser) getAllGoFileInfoFromDeps(pkg *depth.Pkg) error {
 	if pkg.Internal || !pkg.Resolved { // ignored internal and not resolved dependencies
 		return nil

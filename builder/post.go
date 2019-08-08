@@ -130,7 +130,6 @@ func (builder *Builder) outAddDtoAndToModel() (string, error) {
 				bodys = append(bodys, adtmtCode.String())
 			}
 		}
-
 	}
 	if bodys == nil || len(bodys) < 1 {
 		return "", NOBODY

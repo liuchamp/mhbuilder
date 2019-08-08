@@ -59,6 +59,8 @@ var _filterFileTemp = `
 package {{.PkgName}}
 
 import (
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/x/bsonx"
 {{range $element := .Imps}}
 	{{$element}}
 {{end}}

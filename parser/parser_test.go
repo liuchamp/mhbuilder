@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const SEARCHDIR = "/Users/mac/Code/go/src/github.com/liuchamp/mhbuilder/testdata/models"
+const SEARCHDIR = "../testdata/models"
 
 func TestParser_ParModel(t *testing.T) {
 	p := NewParser()
@@ -14,5 +14,6 @@ func TestParser_ParModel(t *testing.T) {
 	Convey("解析目标目录", t, func() {
 		err := p.ParModel(searchDir)
 		So(err, ShouldEqual, nil)
+		So(len(p.files), ShouldEqual, 1)
 	})
 }
