@@ -89,7 +89,12 @@ func (g *Gen) Build(config *Config) error {
 		}
 		err = utils.FileOuter(filepath.Join(config.OutputDir, builder.BUILD_FILTER, fileName), uor.Filter)
 		if err != nil {
-			log.Error("写入文件错误", filepath.Join(config.OutputDir, builder.BUILD_POST, fileName))
+			log.Error("写入文件错误", filepath.Join(config.OutputDir, builder.BUILD_FILTER, fileName))
+			return err
+		}
+		err = utils.FileOuter(filepath.Join(config.OutputDir, builder.BUILD_PUT, fileName), uor.Put)
+		if err != nil {
+			log.Error("写入文件错误", filepath.Join(config.OutputDir, builder.BUILD_PUT, fileName))
 			return err
 		}
 	}

@@ -17,10 +17,12 @@ const (
 	PUTCHSUFFIX  = "Match"
 	SCOPESUFFIX  = "Filter"
 
-	TAG_BUILD = "build"
-	TAG_SCOPE = "scope"
-	TAG_JSON  = "json"
-	TAG_BSON  = "bson"
+	TAG_BUILD    = "build"
+	TAG_SCOPE    = "scope"
+	TAG_JSON     = "json"
+	TAG_BSON     = "bson"
+	TAG_VALIDATE = "validate"
+	TAG_BINDING  = "binding"
 
 	BUILD_POST   = "post"
 	BUILD_PUT    = "put"
@@ -44,6 +46,7 @@ type Builder struct {
 type BuilderOut struct {
 	Post   string
 	Filter string
+	Put    string
 }
 
 type FileMap struct {
@@ -167,6 +170,12 @@ func (builder *Builder) WirteFile() (*BuilderOut, error) {
 	}
 	bot.Filter = flt
 	log.Debug(bot.Filter)
+
+	put, err := builder.outPut()
+	if err != nil {
+		return nil, err
+	}
+	bot.Put = put
 	return bot, nil
 }
 
