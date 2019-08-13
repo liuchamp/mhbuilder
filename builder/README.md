@@ -132,18 +132,66 @@ func UserMatch(value map[string]interface{}, scope int) (updater interface{}, er
 在 put 方法中， 必须保证 required 字段上传，同时还需要限制传入遍历的限制。
 
 ```Go
-func UserUpdateDTO(value map[string]interface{}, scope int) (updater interface{}, err error) {
-	if value == nil || len(value) == 0 {
-		return nil, errors.New("value nil")
+import (
+	"errors"
+	"github.com/wxnacy/wgo/arrays"
+	"go.mongodb.org/mongo-driver/bson"
+	"windplatform/webbackend/server/models"
+)
+var (
+	// key -> scope
+	//  value -> json tags
+	userScopeMap map[int][]string
+	// key -> json tag
+	// value -> bson tag
+	userJBMap map[string]string
+	// key -> json tag
+	// value -> bind tag and options   详情查看
+	userValidatorMap map[string]string
+)
+
+func init() {
+	userScopeMap[6] = []string{"finderuser"}
+	userJBMap["finder"] = "dsafsda"
+	userValidatorMap["finder"] = "required,email"
+}
+
+func UserUpdateDTO(values map[string]interface{}, scope int) (updater interface{}, valiErr []models.ValidateErr, err error) {
+	if values == nil || len(values) == 0 {
+		return nil, nil, errors.New("value nil")
 	}
-	sArrayxxx := []string{"dsafdsaf", "dsafdsfa", "dsafdsaf"}
+
 	up := bson.M{}
-	for k, v := range value {
-		if k == xxx && scope < xxx && arrays.ContainsString(sArrayxxx, k) != -1 {
-			up[k_b] = v
+	for jTag, value := range values {
+		// 检查值是否存在scope中
+		if checkUserValueOptInScope(jTag, scope) {
+			// 值校验
+			err := bsVali.Var(value, userValidatorMap[jTag])
+			if err != nil {
+				valiErr = append(valiErr, models.ValidateErr{FieldName: jTag, ValidatorMsg: err.Error()})
+			} else {
+				up[userJBMap[jTag]] = value
+			}
 		}
 	}
-	return bson.M{"$set": up}, nil
+
+	if valiErr != nil || len(valiErr) > 0 {
+		return nil, valiErr, errors.New("validate error")
+	}
+
+	return bson.M{"$set": up}, nil, nil
+}
+
+// 判断值是否在操作权限内
+func checkUserValueOptInScope(valueKey string, scope int) bool {
+	for k, v := range userScopeMap {
+		if k < scope {
+			if arrays.ContainsString(v, valueKey) != -1 {
+				return true
+			}
+		}
+	}
+	return false
 }
 ```
 
