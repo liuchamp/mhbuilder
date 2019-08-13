@@ -51,5 +51,6 @@ func TestBuilder_WirteFile(t *testing.T) {
 		So(bu.Filter, ShouldNotBeNil)
 		log.Debug(builder.fm.Models[0].Name)
 		So(strings.Contains(bu.Filter, builder.fm.Models[0].Name), ShouldBeTrue)
+		So(strings.Contains(bu.Put, builder.fm.Models[0].Name), ShouldBeTrue)
 	})
 }
