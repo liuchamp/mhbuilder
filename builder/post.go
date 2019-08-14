@@ -131,7 +131,7 @@ func (builder *Builder) outAddDtoAndToModel() (string, error) {
 			}
 		}
 	}
-	if bodys == nil || len(bodys) < 1 {
+	if bodys == nil {
 		return "", NOBODY
 	}
 

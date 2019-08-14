@@ -196,7 +196,10 @@ func (builder *Builder) extendDTOMap(structsMap map[string]*ast.StructType) (*Fi
 			}
 			field := FieldMap{}
 			field.FieldName = vf.Names[0].Name
-			fType := vf.Type.(*ast.Ident)
+			fType, oks := vf.Type.(*ast.Ident)
+			if !oks {
+				continue
+			}
 			field.Types = fType.Name
 
 			if vf.Tag != nil {

@@ -6,12 +6,12 @@ import (
 )
 
 // The git commit that was compiled. This will be filled in by the compiler.
-const GitCommit = "28021c5e04e7292c87896e6c9a14d736eff05741"
+const GitCommit = "d38a81e4b870cde93b6dcb14daf9f218865437be"
 
 // The main version number that is being run at the moment.
-const Version = "0.1.2"
+const Version = "1.0.0"
 
-const BuildDate = "2019-08-08-16:15:51"
+const BuildDate = "2019-08-13-14:38:37"
 
 var GoVersion = runtime.Version()
 

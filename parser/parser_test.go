@@ -14,6 +14,6 @@ func TestParser_ParModel(t *testing.T) {
 	Convey("解析目标目录", t, func() {
 		err := p.ParModel(searchDir)
 		So(err, ShouldEqual, nil)
-		So(len(p.files), ShouldEqual, 1)
+		So(len(p.files), ShouldEqual, 2)
 	})
 }

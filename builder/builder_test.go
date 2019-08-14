@@ -20,7 +20,7 @@ var builder *Builder
 
 func TestMain(m *testing.M) {
 
-	filename := SEARCHDIR + "/user.go"
+	filename := SEARCHDIR + "/deployement.go"
 	pkg, _ := utils.GetPkgName(path.Dir(filename))
 	src, _ := ioutil.ReadFile(filename)
 
