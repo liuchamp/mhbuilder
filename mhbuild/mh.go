@@ -7,3 +7,6 @@ func NewMhc() *Mhc {
 
 	return &Mhc{}
 }
+func (mh *Mhc) Build() {
+
+}
