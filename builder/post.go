@@ -69,7 +69,7 @@ type addDtoToModelTemplate struct {
 
 var _addDtoToModelTemplate = `
 // {{.StructName}} function To model
-func (dto *{{.StructName}})toModel() *{{.ParentPk}}.{{.Model}} {
+func (dto *{{.StructName}})ToModel() *{{.ParentPk}}.{{.Model}} {
 	model:=&{{.ParentPk}}.{{.Model}}{}
 {{range $element := .Fields}}
 	{{$element}}
@@ -131,7 +131,7 @@ func (builder *Builder) outAddDtoAndToModel() (string, error) {
 			}
 		}
 	}
-	if bodys == nil || len(bodys) < 1 {
+	if bodys == nil {
 		return "", NOBODY
 	}
 
