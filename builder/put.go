@@ -95,16 +95,29 @@ type putModelFilterInitTemp struct {
 }
 
 var _putModelFilterInitTemp = `
-{{$moName:=.ModelName}}
-{{range $scope,$fields := .ScopeToFields}}
+{{- $moName:=.ModelName}}
+{{- $slen := len .ScopeToFields}}
+{{- if gt $slen 0}}
+	{{$moName}}ScopeMap = make(map[int][]string)
+{{- end}}
+{{- range $scope,$fields := .ScopeToFields}}
 	{{$moName}}ScopeMap[{{$scope}}] = {{ $length := lenfxs $fields }} []string{ {{range $index,$field := $fields}}"{{$field}}"{{ if gt $length $index }},{{end}}{{end}} }
-{{end}}
-{{range $jtag,$btag := .JBMap}}
+{{- end}}
+{{- $ljm := len .JBMap}}
+{{- if gt $ljm 0}}
+	{{$moName}}JBMap = make(map[string]string)
+{{- end}}
+{{- range $jtag,$btag := .JBMap}}
 	{{$moName}}JBMap["{{$jtag}}"] = "{{$btag}}"
-{{end}}
-{{range $btag,$vali := .ValiMap}}
+{{- end}}
+
+{{- $le:= len .ValiMap}}
+{{- if gt $le 0}}
+	{{$moName}}ValidatorMap = make(map[string]string)
+{{- end}}
+{{- range $btag,$vali := .ValiMap}}
 	{{$moName}}ValidatorMap["{{$btag}}"] = "{{$vali}}"
-{{end}}
+{{- end}}
 `
 
 func getPutInit(pfht putModelFilterInitTemp) (string, error) {

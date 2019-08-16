@@ -26,7 +26,7 @@ help:
 
 
 
-build: test version
+build: version
 	@echo "building ${BIN_NAME} ${GIT_VERSION} ${BUILD_DATE} ${GIT_COMMIT}"
 	@echo "GOPATH=${GOPATH}"
 	@echo ""
