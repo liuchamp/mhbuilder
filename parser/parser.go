@@ -3,7 +3,6 @@ package parser
 import (
 	"fmt"
 	"github.com/KyleBanks/depth"
-	"github.com/liuchamp/mhbuilder/builder"
 	"github.com/liuchamp/mhbuilder/log"
 	"github.com/liuchamp/mhbuilder/utils"
 	"go/ast"
@@ -46,11 +45,6 @@ func (parser *Parser) ParModel(searchDir string) error {
 	if err != nil {
 		return err
 	}
-
-	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_POST))
-	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_PUT))
-	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_FILTER))
-	os.RemoveAll(filepath.Join(searchDirAbs, builder.BUILD_PATCH))
 
 	if err := parser.getAllGoFileInfo(searchDirAbs); err != nil {
 		return err
@@ -123,6 +117,9 @@ func (parser *Parser) Skip(path string, f os.FileInfo) error {
 		if f.IsDir() && f.Name() == "vendor" {
 			return filepath.SkipDir
 		}
+	}
+	if f.IsDir() && (f.Name() == "post" || f.Name() == "patch" || f.Name() == "filter" || f.Name() == "put") {
+		return filepath.SkipDir
 	}
 	// exclude all hidden folder
 	if f.IsDir() && len(f.Name()) > 1 && f.Name()[0] == '.' {

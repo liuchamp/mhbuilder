@@ -69,7 +69,7 @@ type addDtoToModelTemplate struct {
 
 var _addDtoToModelTemplate = `
 // {{.StructName}} function To model
-func (dto *{{.StructName}})toModel() *{{.ParentPk}}.{{.Model}} {
+func (dto *{{.StructName}})ToModel() *{{.ParentPk}}.{{.Model}} {
 	model:=&{{.ParentPk}}.{{.Model}}{}
 {{range $element := .Fields}}
 	{{$element}}
