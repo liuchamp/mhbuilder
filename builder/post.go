@@ -54,9 +54,9 @@ type addDtoTemplate struct {
 var _addDtoTemplate = `
 // {{.StructName}} created
 type {{.StructName}} struct {
-{{range $element := .Feilds}}
+{{- range $element := .Feilds}}
 	{{$element}}
-{{end}}
+{{- end}}
 }
 `
 
@@ -71,9 +71,9 @@ var _addDtoToModelTemplate = `
 // {{.StructName}} function To model
 func (dto *{{.StructName}})ToModel() *{{.ParentPk}}.{{.Model}} {
 	model:=&{{.ParentPk}}.{{.Model}}{}
-{{range $element := .Fields}}
+{{- range $element := .Fields}}
 	{{$element}}
-{{end}}
+{{- end}}
 	return model
 }
 `

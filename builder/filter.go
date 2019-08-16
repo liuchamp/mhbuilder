@@ -21,9 +21,9 @@ type scopeFilterT struct {
 // 在导出前，收集scope相同的field。然后输出到对应的,和sortMap类似的结构中。
 var _scopeFilterT = `
 	if scope< {{.Scope}} {
-	{{range $element := .Fields}}
+	{{- range $element := .Fields}}
 		filter["{{$element}}"] = bsonx.Int32(0)
-	{{end}}
+	{{- end}}
     }
 `
 
@@ -66,9 +66,9 @@ import (
 {{end}}
 )
 
-{{range $element := .Filters}}
+{{- range $element := .Filters}}
 {{$element}}
-{{end}}
+{{- end}}
 `
 
 func (builder *Builder) outFilter() (string, error) {
